@@ -28,6 +28,7 @@ iotbotscom                02/11/2021               1.0.2                        
 iotbotscom                03/17/2021               1.0.3                        Support of Arduino MKR IOT boards and qTop LTE BG95 AMC (Arduino MKR Compatible) shield added
 iotbotscom                05/03/2021               1.0.4                        Support of qBoardB (Adafruit Feather Compatible) IOT board and qTop LTE BG96 AFC (Adafruit Feather Compatible) shield added
 iotbotscom                05/04/2021               1.0.5                        Support of qBoardA (Arduino MKR Compatible) IOT board and qTop LTE BG95 AMC (Arduino MKR Compatible) shield added
+iotbotscom                05/07/2021               1.0.6                        GNSS plolling / qBoard-B battery reading issues fixed
 
 
 *****************************************************************************/
@@ -53,7 +54,7 @@ iotbotscom                05/04/2021               1.0.5                        
 //#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG96
 
 // Project HW option : Arduino MKR Board + qTop BG95 AMC Shield
-#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_MKR
+#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDA
 #define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
 
 // Project HW option : Adafruit Feather Huzzah ESP32 Board + qTop BG96 AFC Shield
@@ -175,8 +176,8 @@ DynamicJsonDocument jsonbuf(1024);
 String reqtstr = "";
 
 // Working Mode
-//int demo_mode = MODE_ALWAYS_ON;
-int demo_mode = MODE_ONE_SHOT;
+int demo_mode = MODE_ALWAYS_ON;
+//int demo_mode = MODE_ONE_SHOT;
 
 // Devices status
 bool is_modem_on = false;
@@ -275,7 +276,7 @@ void setup() {
   pinMode(MODEM_ON_PIN, OUTPUT);
   digitalWrite(MODEM_ON_PIN, LOW);
 
-#if (defined IOT_BOARD_TYPE) && ((IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB) || (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDA))
+#if ((defined IOT_BOARD_TYPE) && (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB))
   pinMode(BATTERY_EN_PIN, OUTPUT);
   digitalWrite(BATTERY_EN_PIN, LOW);
 #endif
@@ -350,7 +351,7 @@ void loop() {
     }
   }
   else {
-    if(is_gnss_ready == true || gnss_attempts > 5) {
+    if(is_gnss_ready == true || gnss_attempts++ > 5) {
         gnss_attempts = 0;
 
       /* Obtain Data to be publised */
@@ -618,7 +619,7 @@ void get_sensor_data(void ) {
 
   //get and print battery voltage
 
-#if 0//(defined IOT_BOARD_TYPE) && ((IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB) || (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDA))
+#if ((defined IOT_BOARD_TYPE) && (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB))
   digitalWrite(BATTERY_EN_PIN, HIGH);
   delay(500);
 #endif
@@ -632,7 +633,7 @@ void get_sensor_data(void ) {
     int_battery = 100;
   }
   Serial.println(int_battery);
-#if 0//(defined IOT_BOARD_TYPE) && ((IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB) || (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDA))
+#if ((defined IOT_BOARD_TYPE) && (IOT_BOARD_TYPE == IOT_BOARD_TYPE_QBOARDB))
   digitalWrite(BATTERY_EN_PIN, LOW);
 #endif
 
