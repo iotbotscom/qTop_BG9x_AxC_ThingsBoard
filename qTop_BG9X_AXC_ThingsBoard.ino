@@ -10,6 +10,8 @@
     Nano SIM Card;
     LiPol Battery.
 
+    * For qBoard-A or qBoard-B "ESP32 Dev Module" should be choosen as board in Arduino IDE.
+
   Project HW Option:
     You need to set these defines:
       - IOT_BOARD_TYPE : CPU Board type
@@ -28,7 +30,8 @@ iotbotscom                02/11/2021               1.0.2                        
 iotbotscom                03/17/2021               1.0.3                        Support of Arduino MKR IOT boards and qTop LTE BG95 AMC (Arduino MKR Compatible) shield added
 iotbotscom                05/03/2021               1.0.4                        Support of qBoardB (Adafruit Feather Compatible) IOT board and qTop LTE BG96 AFC (Adafruit Feather Compatible) shield added
 iotbotscom                05/04/2021               1.0.5                        Support of qBoardA (Arduino MKR Compatible) IOT board and qTop LTE BG95 AMC (Arduino MKR Compatible) shield added
-iotbotscom                05/07/2021               1.0.6                        GNSS plolling / qBoard-B battery reading issues fixed
+iotbotscom                05/07/2021               1.0.6                        GNSS polling / qBoard-B battery reading issues fixed
+iotbotscom                05/20/2021               1.0.7                        GNSS position search order changed, put before GSM registration
 
 
 *****************************************************************************/
@@ -53,8 +56,8 @@ iotbotscom                05/07/2021               1.0.6                        
 //#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDB
 //#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG96
 
-// Project HW option : Arduino MKR Board + qTop BG95 AMC Shield
-#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDA
+// Project HW option : qBoardB (Feather Compatible Board) + qTop BG95 AMC Shield
+#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDB
 #define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
 
 // Project HW option : Adafruit Feather Huzzah ESP32 Board + qTop BG96 AFC Shield
@@ -144,7 +147,7 @@ HardwareSerial &serialGSM = Serial1;
 #endif
 
 // Uncomment to see StreamDebugger output in serial monitor
-#define DUMP_AT_COMMANDS 1
+//#define DUMP_AT_COMMANDS 1
 #ifdef DUMP_AT_COMMANDS
   #include <StreamDebugger.h>
   StreamDebugger debugger(serialGSM, Serial);
@@ -227,6 +230,7 @@ bool modem_gnss_off(void );
 bool modem_gnss_resume(void );
 bool modem_gnss_suspend(void );
 bool getfield(char * pBuf, char * pField, int idx, int len);
+bool gnss_search(void );
 
 #if (defined(ESP32))
 // ESP32 specific
@@ -321,6 +325,11 @@ void setup() {
     Serial.print("CCID: ");
     Serial.println(ccid);
 
+    delay(3000);
+
+    /* GNSS On and Search */
+    gnss_search();
+
     is_modem_on = true;
   } else {
     Serial.println("No Modem Found");
@@ -400,6 +409,9 @@ void loop() {
       Serial.println("GPRS disconnected");
     }
 
+    /* GNSS Off */
+    modem_gnss_off();
+
     /* Modem Off */
     modem.poweroff();
     digitalWrite(MODEM_PWR_ON_PIN, LOW);
@@ -472,9 +484,6 @@ bool modem_register(void ) {
 
   /* Get Network Time */
   get_network_time();
-
-  // GNSS On
-  modem_gnss_on();
 
   is_modem_registered = true;
 
@@ -723,6 +732,30 @@ bool get_network_time(void ) {
   }
 }
 
+bool gnss_search(void ) {
+
+  int timer = 0;
+
+  //Serial.print("GNSS Search ");
+
+  modem_gnss_on();
+
+  while(get_gnss_data() != true && timer++ < 120) {
+    //Serial.println(".");
+    delay(1000);
+  }
+
+  if(is_gnss_ready == true) {
+    //Serial.println(": Position Fixed");
+
+    return true;
+  } else {
+    //Serial.println(": Failed");
+
+    return false;
+  }
+}
+
 bool get_gnss_data(void ) {
 
   char pField[32];
@@ -854,10 +887,12 @@ bool get_gnss_data(void ) {
 
 bool modem_gnss_on(void ) {
 
+  int attempts = 3;
+
 #if ((defined QTOP_CELL_SHIELD_TYPE) && (QTOP_CELL_SHIELD_TYPE == QTOP_CELL_SHIELD_TYPE_BG95))
   modem.sendAT(GF("+QGPSCFG=\"priority\",0,0\r\n"));
   if (modem.waitResponse() == 1) {
-    delay(1000);
+    delay(3000);
     modem.sendAT(GF("+QGPS=1\r\n"));
     if (modem.waitResponse() == 1) {
       is_gnss_on = true;
