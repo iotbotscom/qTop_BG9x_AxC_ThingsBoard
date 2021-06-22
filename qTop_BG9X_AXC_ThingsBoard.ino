@@ -32,6 +32,7 @@ iotbotscom                05/03/2021               1.0.4                        
 iotbotscom                05/04/2021               1.0.5                        Support of qBoardA (Arduino MKR Compatible) IOT board and qTop LTE BG95 AMC (Arduino MKR Compatible) shield added
 iotbotscom                05/07/2021               1.0.6                        GNSS polling / qBoard-B battery reading issues fixed
 iotbotscom                05/20/2021               1.0.7                        GNSS position search order changed, put before GSM registration
+iotbotscom                06/21/2021               1.0.8                        qTop-BG95-AMC Arduino MKR ThingsBoard Demo (tested on Zero, WiFi 1010, WAN 1300)
 
 
 *****************************************************************************/
@@ -52,13 +53,17 @@ iotbotscom                05/20/2021               1.0.7                        
 //#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDA
 //#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
 
+// Project HW option : Arduino MKR Board + qTop BG95 AMC Shield
+#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_MKR
+#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
+
 // Project HW option : qBoardB (Feather Compatible Board) + qTop BG96 AFC Shield
 //#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDB
 //#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG96
 
 // Project HW option : qBoardB (Feather Compatible Board) + qTop BG95 AMC Shield
-#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDB
-#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
+//#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_QBOARDB
+//#define QTOP_CELL_SHIELD_TYPE       QTOP_CELL_SHIELD_TYPE_BG95
 
 // Project HW option : Adafruit Feather Huzzah ESP32 Board + qTop BG96 AFC Shield
 //#define IOT_BOARD_TYPE              IOT_BOARD_TYPE_HUZZAH32
